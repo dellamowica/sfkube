@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testsf
+  labels:
+    app: "testsf"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "testsf"
+  template:
+    metadata:
+      labels:
+        app: "testsf"
+    spec:
+      containers:
+        - name: php
+          image: php:8.2-fpm-alpine
+          ports:
+            -
+              containerPort: 9000
+              name: php
+        - name: caddy
+          image: caddy
+          ports:
+            - containerPort: 80
+              name: caddy

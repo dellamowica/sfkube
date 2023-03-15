@@ -1,7 +1,21 @@
 version: '3'
 
 services:
-###> doctrine/doctrine-bundle ###
+  http:
+    image: caddy
+    ports:
+      - "8080:8080"
+      - "443:443"
+    volumes:
+      - .:/var/www
+      - ./Caddyfile:/etc/caddy/Caddyfile
+  php:
+    image: php:8.2-fpm-alpine
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/var/www:rw
+      ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
     environment:

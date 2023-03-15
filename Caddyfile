@@ -1,0 +1,10 @@
+:8080 {
+	# Set this path to your site's directory.
+	root * /var/www/public
+
+	# Enable the static file server.
+	file_server
+
+	# Or serve a PHP site through php-fpm:
+	php_fastcgi php:9000
+}
