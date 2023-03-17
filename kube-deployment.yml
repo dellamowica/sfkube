@@ -1,3 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: testsf-ingress
+spec:
+  rules:
+    - host: kubernetes.docker.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: testsf
+                port:
+                  number: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testsf
+  labels:
+    apps: testsf
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 80
+      name: testsf
+  selector:
+    app: testsf
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,11 +50,45 @@ spec:
         - name: php
           image: php:8.2-fpm-alpine
           ports:
-            -
-              containerPort: 9000
+            - containerPort: 9000
               name: php
+          volumeMounts:
+            - mountPath: "/var/www"
+              name: www-data
         - name: caddy
           image: caddy
           ports:
             - containerPort: 80
               name: caddy
+          volumeMounts:
+            - mountPath: "/var/www"
+              name: www-data
+            - name: www-data
+              mountPath: "/etc/caddy/Caddyfile"
+              subPath: "Caddyfile"
+      initContainers:
+        - name: git-cloner
+          image: alpine/git
+          args:
+            - clone
+            - --single-branch
+            - --
+            - https://github.com/dellamowica/sfkube.git
+            - /data
+          volumeMounts:
+            - mountPath: /data
+              name: www-data
+        - name: composer
+          image: composer
+          command:
+            - bash
+            - "-c"
+            - |
+              cd /var/www
+              composer install
+          volumeMounts:
+            - mountPath: "/var/www"
+              name: www-data
+      volumes:
+        - name: www-data
+          emptyDir: { }
